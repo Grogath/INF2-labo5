@@ -16,11 +16,13 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <time.h>
+#include <math.h>
 
-#define NB_CHOIX_POSSIBLE  2
+#define NBR_CHOIX_POSSIBLE 2
+#define NBR_ETOILES 15
 
 #define MIN_BILLES 1000
-#define MAX_BILLES  10000
+#define MAX_BILLES 10000
 #define DEMANDE_NB_BILLES "Entrez le nombre de billes [1000 - 10000] : "
 
 #define MIN_RANGEES 10
@@ -52,6 +54,10 @@ unsigned demanderSaisieUnsigned(const char* message, unsigned min, unsigned max)
 void decendreUneBille(unsigned* ptrCaseGauche);
 
 void clear_stdin(void);
+
+size_t indexValeurMax(unsigned* tab,size_t t);
+
+void afficher(unsigned** tab, size_t taille);
 /*
  * 
  */
@@ -116,12 +122,10 @@ int main() {
             }
         }
     }
-        
-        
     
     // Affichage du resultat
     
-    
+    afficher(ptrTabRangee, nbrRangees);
     
     return (EXIT_SUCCESS);
 }
@@ -130,29 +134,25 @@ unsigned demanderSaisieUnsigned(const char* message, unsigned min,
                                 unsigned max){
     
     unsigned saisie = 0;
-    clear_stdin();
+    unsigned estPasOk = 1;
     
-    // affichage du mesage à destination de l'utilisateur
-    printf("%s\n", message);
-    scanf("%u[0123456789]", &saisie);
-    
-    printf("Saisie = %u\n", saisie);
-    
-    while (saisie < min || saisie > max) {
-        
+    do {
         // vidange du buffer
         clear_stdin();
         
-        printf("Boucle erreur\n");
         
-        // il y a eu une erreur on affiche le message de redemande se saisie
-        printf("%s\n", MESSAGE_ERREUR_SAISIE);
         // affichage du mesage à destination de l'utilisateur
         printf("%s\n", message);
         scanf("%u[0123456789]", &saisie);
         
-    }
-    printf("Next Return\n");
+        if(saisie < min || saisie > max) {
+            // il y a eu une erreur on affiche le message de redemande se saisie
+            printf("%s\n", MESSAGE_ERREUR_SAISIE);
+        } else {
+            estPasOk = 0;
+        }
+    } while (estPasOk);
+    
     return saisie;
 }
 
@@ -161,9 +161,69 @@ void decendreUneBille(unsigned* ptrCaseGauche){
 }
 
 size_t vaADroite(){
-    return (size_t)(rand() % NB_CHOIX_POSSIBLE);
+    return (size_t)(rand() % NBR_CHOIX_POSSIBLE);
 }
 
 void clear_stdin(void) {
     fseek(stdin, 0, SEEK_END);
+}
+
+size_t indexValeurMax(unsigned* tab,size_t taille) {
+    
+    // au debut max = index 0
+    size_t max = 0;
+    
+    // cherche le max
+    for(size_t i = 1; i < taille; i++) {
+        if(tab[i] > tab[max]) {
+            max = i;
+        }
+    }
+    
+    return max;
+}
+
+
+void afficher(unsigned** tab, size_t taille) {
+    
+    size_t maxValueIndex = indexValeurMax(tab[taille - 1], taille);
+    
+    int nbrCharParCol = (int)log10(**tab) + 1;
+    
+    for(size_t i = 0; i < taille; i++) {
+        for(size_t j = 0; j <= i; j++) {
+            printf("%*u", nbrCharParCol, tab[i][j]);
+            
+            // séparateur entre deux colonnes
+            if(j < i){
+                printf(" ");
+            }
+        }
+        printf("\n");
+    }
+
+    // les colonnes (NBR_ETOILES)
+    for(size_t i = 0; i < NBR_ETOILES; i++) {
+        
+        // les cases de la dernière ligne de capteurs
+        for(size_t j = 0; j < taille; j++) {
+            
+            for(int k = 1; k < nbrCharParCol; k++){
+                printf(" ");
+            }
+            
+            //if((double)tab[taille - 1][j] / (double)tab[taille - 1][maxValueIndex] > (double)j / (double)tab[taille - 1][maxValueIndex]) {
+            if((double)tab[taille - 1][j] / (double)tab[taille - 1][maxValueIndex] * NBR_ETOILES  >= i) {
+                printf("*");
+            } else {
+                printf(" ");
+            }
+            
+            // séparateur entre deux colonnes
+            if(j < taille - 1){
+                printf(" ");
+            }
+        }
+        printf("\n");
+    }
 }
