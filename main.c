@@ -5,9 +5,10 @@
  Auteur(s)   : Adrien Allemand et Kamil Amrani
  Date        : 11 Mai 2017
 
- But         : 
+ But         : Modéliser la simulation d'une table de Glaton et en afficher
+ *             le resultat.
 
- Remarque(s) : 
+ Remarque(s) : Les define globaux permettent de personnaliser la table de Galton
 
  Compilateur : MinGW-g++ 5.3.0
  -------------------------------------------------------------------------------
@@ -28,10 +29,11 @@
 /* Paramètres pour la table de Galton*/
 #define MIN_BILLES 1000
 #define MAX_BILLES 10000
-#define DEMANDE_NB_BILLES "Entrez le nombre de billes [1000 - 10000] : "
+#define DEMANDE_NB_BILLES "Entrez le nombre de billes [%d - %d] : "
 #define MIN_RANGEES 10
-#define MAX_RANGEES 30
-#define DEMANDE_NB_RANGEE_CAPTEURS "Entrez le nombre de rangees de compteurs [10 - 20] : "
+#define MAX_RANGEES 20
+#define DEMANDE_NB_RANGEE_CAPTEURS \
+        "Entrez le nombre de rangees de compteurs [%d - %d] : "
 #define MESSAGE_ERREUR_SAISIE "Saisie incorrecte. Veuillez SVP recommencer."
 
 
@@ -52,20 +54,46 @@ size_t vaADroite();
  * @return          Le nombre entier non signé, compris entre les bornes, saisit
  *                  par l'utilisateur.
  */
-unsigned demanderSaisieUnsigned(const char* message, unsigned min, unsigned max);
+unsigned demanderSaisieUnsigned(const char* message, unsigned min, 
+                                unsigned max);
 
+/*
+ * @brief                   Incrémente une des des deux capteurs du sessous pour 
+ *                          simuler la décente d'une bille.
+ * 
+ * @param ptrCaseGauche     La case de gauche de dans laquelle la bille peut 
+ *                          tomber.
+ */
 void decendreUneBille(unsigned* ptrCaseGauche);
 
+/*
+ * @brief   Vide le buffer de manière propre.
+ */
 void clear_stdin(void);
 
-size_t indexValeurMax(unsigned* tab,size_t t);
-
-void afficher(unsigned** tab, size_t taille);
-
-void galtonTable();
 /*
+ * @brief           Numero de la colonne de la plus grande valeure trouvée dans 
+ *                  la dernière ligne de la table de Galton.
  * 
+ * @param tab       Un pointeur sur la dernière ligne de la table de Galton
+ * @param taille    La taille de la ligne
+ * 
+ * @return          Le numero de la colonne de la plus grande valeure trouvée 
+ *                  dans la dernière ligne de la table de Galton.
  */
+size_t indexValeurMax(unsigned *const tab,size_t taille);
+
+/*
+ * @brief           Affiche les valeurs des capteurs de chaque ligne de la 
+ *                  table de galton ainsi qu'un histogramme de celles-ci.
+ * 
+ * @param tab       Un pointeur sur La table de Galton
+ * @param taille    Le nombre de lignes de capteur de la table de Galton
+ */
+void afficher(unsigned *const *const tab, size_t taille);
+
+
+
 int main() {
     
     // set de la seed qu isera utilisée pour le random
@@ -83,7 +111,7 @@ int main() {
     /* Allocation */
     // Allocation de la memoire du tableau de pointeurs* de rangées
     unsigned** ptrTabRangee = (unsigned**) malloc(nbrRangees * 
-                                                  sizeof(unsigned*));       /* HACK */
+                                                  sizeof(unsigned*));
 
     // test que le malloc plante
     if(!ptrTabRangee){
@@ -147,7 +175,7 @@ unsigned demanderSaisieUnsigned(const char* message, unsigned min,
         
         
         // affichage du mesage à destination de l'utilisateur
-        printf("%s", message);
+        printf(message, min, max);
         
         // ne récupert que les 9 caractères qui ne sont pas chiffres
         scanf("%u[0123456789]", &saisieUnsigned);
@@ -175,7 +203,7 @@ void clear_stdin(void) {
     fseek(stdin, 0, SEEK_END);
 }
 
-size_t indexValeurMax(unsigned* tab,size_t taille) {
+size_t indexValeurMax(unsigned *const tab,size_t taille) {
     
     // au debut max = index 0
     size_t max = 0;
@@ -191,8 +219,9 @@ size_t indexValeurMax(unsigned* tab,size_t taille) {
 }
 
 
-void afficher(unsigned** tab, size_t taille) {
+void afficher(unsigned *const *const tab, size_t taille) {
     
+    printf("\n");
     
     /* AFFICHAGE DES CAPTEURS*/
     size_t maxValueIndex = indexValeurMax(tab[taille - 1], taille);
@@ -218,8 +247,8 @@ void afficher(unsigned** tab, size_t taille) {
         // les cases de la dernière ligne de capteurs
         for(size_t j = 0; j < taille; j++) {
             
-            
-            if((double)tab[taille - 1][j] / (double)tab[taille - 1][maxValueIndex] * NBR_ETOILES > i + 0.5) {
+            if((double)tab[taille - 1][j] / 
+               (double)tab[taille - 1][maxValueIndex] * NBR_ETOILES > i + 0.5){
                 printf("%*c",nbrCharParCol, SYMBOLE_GRAPH);
             } else {
                 printf("%*c",nbrCharParCol, ESPACE);
