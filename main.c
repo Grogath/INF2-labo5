@@ -18,17 +18,20 @@
 #include <time.h>
 #include <math.h>
 
+/* Paramètre utilisés pour l'affichage */
 #define NBR_CHOIX_POSSIBLE 2
 #define NBR_ETOILES 15
+#define ESPACE ' '
+#define SYMBOLE_GRAPH '*'
+#define SEPARATEUR ' '
 
+/* Paramètres pour la table de Galton*/
 #define MIN_BILLES 1000
 #define MAX_BILLES 10000
 #define DEMANDE_NB_BILLES "Entrez le nombre de billes [1000 - 10000] : "
-
 #define MIN_RANGEES 10
 #define MAX_RANGEES 30
-#define DEMANDE_NB_RANGEE_CAPTEURS "Entrez le nombre de rangees de compteurs [10 - 20]"
-
+#define DEMANDE_NB_RANGEE_CAPTEURS "Entrez le nombre de rangees de compteurs [10 - 20] : "
 #define MESSAGE_ERREUR_SAISIE "Saisie incorrecte. Veuillez SVP recommencer."
 
 
@@ -58,11 +61,13 @@ void clear_stdin(void);
 size_t indexValeurMax(unsigned* tab,size_t t);
 
 void afficher(unsigned** tab, size_t taille);
+
+void galtonTable();
 /*
  * 
  */
 int main() {
-
+    
     // set de la seed qu isera utilisée pour le random
     srand((uint8_t) time(NULL)); 
     
@@ -133,8 +138,8 @@ int main() {
 unsigned demanderSaisieUnsigned(const char* message, unsigned min, 
                                 unsigned max){
     
-    unsigned saisie = 0;
     unsigned estPasOk = 1;
+    unsigned saisieUnsigned = 0;
     
     do {
         // vidange du buffer
@@ -142,10 +147,12 @@ unsigned demanderSaisieUnsigned(const char* message, unsigned min,
         
         
         // affichage du mesage à destination de l'utilisateur
-        printf("%s\n", message);
-        scanf("%u[0123456789]", &saisie);
+        printf("%s", message);
         
-        if(saisie < min || saisie > max) {
+        // ne récupert que les 9 caractères qui ne sont pas chiffres
+        scanf("%u[0123456789]", &saisieUnsigned);
+        
+        if(saisieUnsigned < min || saisieUnsigned > max) {
             // il y a eu une erreur on affiche le message de redemande se saisie
             printf("%s\n", MESSAGE_ERREUR_SAISIE);
         } else {
@@ -153,7 +160,7 @@ unsigned demanderSaisieUnsigned(const char* message, unsigned min,
         }
     } while (estPasOk);
     
-    return saisie;
+    return saisieUnsigned;
 }
 
 void decendreUneBille(unsigned* ptrCaseGauche){
@@ -186,6 +193,8 @@ size_t indexValeurMax(unsigned* tab,size_t taille) {
 
 void afficher(unsigned** tab, size_t taille) {
     
+    
+    /* AFFICHAGE DES CAPTEURS*/
     size_t maxValueIndex = indexValeurMax(tab[taille - 1], taille);
     
     int nbrCharParCol = (int)log10(**tab) + 1;
@@ -196,32 +205,29 @@ void afficher(unsigned** tab, size_t taille) {
             
             // séparateur entre deux colonnes
             if(j < i){
-                printf(" ");
+                printf("%c", SEPARATEUR);
             }
         }
         printf("\n");
     }
 
+    /* AFFICHAGE DES ETOILES */
     // les colonnes (NBR_ETOILES)
     for(size_t i = 0; i < NBR_ETOILES; i++) {
         
         // les cases de la dernière ligne de capteurs
         for(size_t j = 0; j < taille; j++) {
             
-            for(int k = 1; k < nbrCharParCol; k++){
-                printf(" ");
-            }
             
-            //if((double)tab[taille - 1][j] / (double)tab[taille - 1][maxValueIndex] > (double)j / (double)tab[taille - 1][maxValueIndex]) {
-            if((double)tab[taille - 1][j] / (double)tab[taille - 1][maxValueIndex] * NBR_ETOILES  >= i) {
-                printf("*");
+            if((double)tab[taille - 1][j] / (double)tab[taille - 1][maxValueIndex] * NBR_ETOILES > i + 0.5) {
+                printf("%*c",nbrCharParCol, SYMBOLE_GRAPH);
             } else {
-                printf(" ");
+                printf("%*c",nbrCharParCol, ESPACE);
             }
             
             // séparateur entre deux colonnes
             if(j < taille - 1){
-                printf(" ");
+                printf("%c", SEPARATEUR);
             }
         }
         printf("\n");
